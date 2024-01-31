@@ -74,7 +74,7 @@ async def async_form():
             "state" : request.form["state"],
             "zip_code" : request.form["zip"]
         }
-        
+
         async with httpx.AsyncClient() as client:
             email_res, address_res, phone_res = await asyncio.gather(
                 client.get(f'https://api.eva.pingutil.com/email?email={request.form["email"]}', timeout=None),
@@ -82,7 +82,18 @@ async def async_form():
                 client.get(f'https://api.veriphone.io/v2/verify?key={APIKEY}&phone={request.form["phoneNumber"]}&default_country=US')
             )
 
+        if 'data' in email_res.json() and not email_res.json()['data']['deliverable']:
+            errors['email'] = 'Invalid email address'
 
+        if 'deliverability' in address_res.json() and not address_res.json()['deliverability'] == 'deliverable':
+            errors['address'] = 'Invalid address'
+            errors['address2'] = 'Invalid address'
+            errors['city'] = 'Invalid city'
+            errors['state'] = 'Invalid state'
+            errors['zip'] = 'Invalid zip'
+
+        if 'phone_valid' in phone_res.json() and not phone_res.json()['phone_valid']:
+            errors['phoneNumber'] = 'Invalid phone number'
 
 
         end = time.time()

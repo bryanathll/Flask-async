@@ -67,13 +67,6 @@ async def async_form():
         if not request.form['lastName']:
             errors['lastName'] = 'Last name is required.'
 
-        async with httpx.AsyncClient() as client:
-            email_res, address_res, phone_res = await asyncio.gather(
-                client.get(f'https://api.eva.pingutil.com/email?email={request.form["email"]}', timeout=None),
-                client.post(f'https://api.lob.com/v1/us_verifications', auth=auth, data=data),
-                client.get(f'https://api.veriphone.io/v2/verify?key={APIKEY}&phone={request.form["phoneNumber"]}&default_country=US')
-            )
-
         data = {
             "primary_line" : request.form["address"],
             "secondary_line": request.form["address2"],
@@ -81,6 +74,14 @@ async def async_form():
             "state" : request.form["state"],
             "zip_code" : request.form["zip"]
         }
+        
+        async with httpx.AsyncClient() as client:
+            email_res, address_res, phone_res = await asyncio.gather(
+                client.get(f'https://api.eva.pingutil.com/email?email={request.form["email"]}', timeout=None),
+                client.post(f'https://api.lob.com/v1/us_verifications', auth=auth, data=data),
+                client.get(f'https://api.veriphone.io/v2/verify?key={APIKEY}&phone={request.form["phoneNumber"]}&default_country=US')
+            )
+
 
 
 
